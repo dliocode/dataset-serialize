@@ -89,7 +89,7 @@ type
 
 implementation
 
-uses DataSet.Serialize.BooleanField, System.DateUtils, Data.FmtBcd, System.SysUtils, DataSet.Serialize.Utils, System.TypInfo,
+uses DataSet.Serialize.BooleanField, System.DateUtils, Data.FmtBcd, Data.SqlTimSt, System.SysUtils, DataSet.Serialize.Utils, System.TypInfo,
   DataSet.Serialize.Consts, System.Classes, System.NetEncoding, System.Generics.Collections, FireDAC.Comp.DataSet,
   DataSet.Serialize.UpdatedStatus, DataSet.Serialize.Config;
 
@@ -170,10 +170,14 @@ begin
         Result.AddPair(LKey, TJSONNumber.Create(LField.AsFloat));
       TFieldType.ftString, TFieldType.ftWideString, TFieldType.ftMemo, TFieldType.ftWideMemo, TFieldType.ftGuid:
         Result.AddPair(LKey, TJSONString.Create(LField.AsWideString));
-      TFieldType.ftTimeStamp, TFieldType.ftDateTime, TFieldType.ftTime:
-        Result.AddPair(LKey, TJSONString.Create(DateToISO8601(LField.AsDateTime, TDataSetSerializeConfig.GetInstance.DateInputIsUTC)));
       TFieldType.ftDate:
         Result.AddPair(LKey, TJSONString.Create(FormatDateTime(TDataSetSerializeConfig.GetInstance.Export.FormatDate, LField.AsDateTime)));
+      TFieldType.ftDateTime:
+        Result.AddPair(LKey, TJSONString.Create(DateToISO8601(LField.AsDateTime, TDataSetSerializeConfig.GetInstance.DateInputIsUTC)));
+      TFieldType.ftTime:
+        Result.AddPair(LKey, TJSONString.Create(SQLTimeStampToStr('hh:nn:ss', LField.AsSQLTimeStamp)));
+      TFieldType.ftTimeStamp:
+        Result.AddPair(LKey, TJSONString.Create(DateToISO8601(SQLTimeStampToDateTime(LField.AsSQLTimeStamp),TDataSetSerializeConfig.GetInstance.DateInputIsUTC)));
       TFieldType.ftCurrency:
         begin
           if TDataSetSerializeConfig.GetInstance.Export.FormatCurrency.Trim.IsEmpty then
@@ -292,11 +296,20 @@ begin
     LJSONObject.AddPair(FIELD_PROPERTY_DISPLAY_LABEL, TJSONString.Create(LField.DisplayLabel));
     LJSONObject.AddPair(FIELD_PROPERTY_DATA_TYPE, TJSONString.Create(GetEnumName(TypeInfo(TFieldType), Integer(LField.DataType))));
     LJSONObject.AddPair(FIELD_PROPERTY_SIZE, TJSONNumber.Create(LField.SIZE));
-    LJSONObject.AddPair(FIELD_PROPERTY_KEY, TJSONBool.Create(pfInKey in LField.ProviderFlags));
     LJSONObject.AddPair(FIELD_PROPERTY_ORIGIN, TJSONString.Create(LField.ORIGIN));
+    
+   {$IF COMPILERVERSION <= 29}
+    LJSONObject.AddPair(FIELD_PROPERTY_KEY, TJSONString.Create(BoolToStr(pfInKey in LField.ProviderFlags)));
+    LJSONObject.AddPair(FIELD_PROPERTY_REQUIRED, TJSONString.Create(BoolToStr(LField.Required)));
+    LJSONObject.AddPair(FIELD_PROPERTY_VISIBLE, TJSONString.Create(BoolToStr(LField.Visible)));
+    LJSONObject.AddPair(FIELD_PROPERTY_READ_ONLY, TJSONString.Create(BoolToStr(LField.ReadOnly)));
+   {$ELSE}
+    LJSONObject.AddPair(FIELD_PROPERTY_KEY, TJSONBool.Create(pfInKey in LField.ProviderFlags));
     LJSONObject.AddPair(FIELD_PROPERTY_REQUIRED, TJSONBool.Create(LField.Required));
     LJSONObject.AddPair(FIELD_PROPERTY_VISIBLE, TJSONBool.Create(LField.Visible));
     LJSONObject.AddPair(FIELD_PROPERTY_READ_ONLY, TJSONBool.Create(LField.ReadOnly));
+   {$ENDIF}
+    
     LJSONObject.AddPair(FIELD_PROPERTY_AUTO_GENERATE_VALUE, TJSONString.Create(GetEnumName(TypeInfo(TAutoRefreshFlag), Integer(LField.AutoGenerateValue))));
     Result.AddElement(LJSONObject);
   end;

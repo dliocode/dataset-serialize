@@ -1,24 +1,23 @@
-# DataSet Serialize for Delphi
+<a href="https://github.com/viniciussanchez/dataset-serialize/blob/master/img/dataset-serialize.png">
+  <img alt="DataSet-Serialize" height="120" src="https://github.com/viniciussanchez/dataset-serialize/blob/master/img/dataset-serialize.png">
+</a>  
+
+# DataSet Serialize for Delphi and Lazarus (FPC)
 ![Delphi Supported Versions](https://img.shields.io/badge/Delphi%20Supported%20Versions-XE3..10.3%20Rio-blue.svg)
 ![Platforms](https://img.shields.io/badge/Supported%20platforms-Win32%20and%20Win64-red.svg)
 
 DataSet Serialize is a set of features to make working with JSON and DataSet simple. It has features such as exporting or importing records into a DataSet, validate if JSON has all required attributes (previously entered in the DataSet), exporting or importing the structure of DataSet fields in JSON format. In addition to managing nested JSON through master detail or using TDataSetField (you choose the way that suits you best). All this using class helpers, which makes it even simpler and easier to use.
  
-## Prerequisites
+## Prerequisites for Delphi
  * `[Optional]` For ease I recommend using the [**Boss**](https://github.com/HashLoad/boss) (Dependency Manager for Delphi) for installation, simply by running the command below on a terminal (Windows PowerShell for example):
 ```
 boss install github.com/viniciussanchez/dataset-serialize
 ```
 
-## Manual Installation
+## Manual Installation for Delphi
 If you choose to install manually, simply add the following folders to your project, in *Project > Options > Resource Compiler > Directories and Conditionals > Include file search path*
 ```
 ../dataset-serialize/src
-../dataset-serialize/src/core
-../dataset-serialize/src/helpers
-../dataset-serialize/src/providers
-../dataset-serialize/src/singletons
-../dataset-serialize/src/types
 ```
 
 ## Getting Started
@@ -29,7 +28,7 @@ uses DataSet.Serialize;
 Let's now look at each feature, its rules and peculiarities, to deliver the best to all users.
 
 ## DataSet to JSON
-Creating a JSON object with information from a DataSet record seems like a very simple task for Delphi users. But that task just got easier. DataSet Serialize has two functions for this, namely ToJSONObject and ToJSONArray. Let's look at the use of the functions:
+Creating a JSON object with information from a DataSet record seems like a very simple task. But that task just got easier. DataSet Serialize has two functions for this, namely ToJSONObject and ToJSONArray. Let's look at the use of the functions:
 
 ```pascal
 var
@@ -164,13 +163,18 @@ TDataSetSerializeConfig.GetInstance.DateInputIsUTC := True;
 ```pascal
   TDataSetSerializeConfig.GetInstance.Export.ExportOnlyFieldsVisible := True;
 ```
+* Export child DataSet as JSON object (when you have only 1 record)
+```pascal
+  TDataSetSerializeConfig.GetInstance.Export.ExportChildDataSetAsJsonObject := False;
+```
 * Import only fields visible
 ```pascal
   TDataSetSerializeConfig.GetInstance.Import.ImportOnlyFieldsVisible := True;
 ```
-* Field name in lowerCamelCase pattern
+* Case name definition
 ```pascal
-  TDataSetSerializeConfig.GetInstance.LowerCamelCase := True;
+  // cndNone, cndLower, cndUpper, cndLowerCamelCase
+  TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndLowerCamelCase;
 ```
 * Format date (for export field type equals ftDate)
 ```pascal
